@@ -9,21 +9,46 @@ from email.mime.text import MIMEText
 import sys
 import argparse
 
+#User Options
+
+globalsender = ""
+loginrequired = "no"
+server = "localhost"
+port = "587"
+starttls = "no"
+username = "username"
+password = "password"
+
+#Main Function
 
 def main(to, sender, subject, message, attachment):
 	
-	msg = MIMEText(message)
+	msg = MIMEText(message, 'plain')
+
+	if attachment == "html":
+		msg = MIMEText(message, 'html')
+
+	if globalsender != "":
+		sender = globalsender
+
+	msg['Subject'] = subject
+	msg['To'] = to
+	msg['From'] = sender
+	#msg['Content-Type'] = "text/html; charset='utf-8'"
+	#msg['Mime-Version'] = "1.0"
+	#msg['Content-Transfer-Encoding'] =  "base64"
 
 	print(msg)
-	# me == the sender's email address
-	# you == the recipient's email address
-	msg['Subject'] = subject
-	msg['From'] = "Miro <miro@torma.me>"
-	#msg['To'] = to
-	msg['To'] = ", ".join(to)
-	#msg['To'] = "mirotorma@gmail.com"
 
-	s = smtplib.SMTP('localhost')
+	
+
+	s = smtplib.SMTP(server + ":" + port)
+
+	if starttls == "yes":
+		s.starttls()
+	if loginrequired == "yes":
+		s.login(username, password)
+	
 	s.send_message(msg)
 	s.quit()
 
@@ -31,26 +56,21 @@ def main(to, sender, subject, message, attachment):
 
 if __name__ == "__main()__":
 	parser = argparse.ArgumentParser(description='A')
-#parser.add_argument('weight', metavar='N', type=int, nargs=1,
- #                  help='an integer for the accumulator')
+
 	parser.add_argument('-t', '--to',  dest='users', nargs = '*',
         	           help='Email address of the receiver.')
 	parser.add_argument('-s', '--subject', dest = 'subject', nargs = '*',
 				help = "Subject of the message")
 	parser.add_argument('-m', '--message', dest = 'message', nargs = '*',
 				help = "The actual content of the message")
-	parser.add_argument('-f', '--from', dest = 'from', nargs = '*',
+	parser.add_argument('-f', '--sender', dest = 'from', nargs = '*',
         	                help = "Who the message is from")
 
 
 	args = parser.parse_args()
-	to = args.users
+	to = ", ".join(args.users)
 	subject = ' '.join(args.subject)
 	message = ' '.join(args.message)
 
-	main(to, "", subject, message, "")
-#for x in args.subject:
-#	string += x
-
-
+	main(to, sender, subject, message, "plain")
 
